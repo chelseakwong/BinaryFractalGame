@@ -15,7 +15,7 @@ var FracBlock = function(num){
 	// 1d array;0 means nothing there,
 	// 			1 means 1 dot,
 	//			2 means 2 dots
-	for (var i = 0; i < num, i++){
+	for (var i = 0; i < num; i++){
 		this.data[i] = 0;
 	}
 }
