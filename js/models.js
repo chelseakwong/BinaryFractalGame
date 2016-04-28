@@ -62,7 +62,7 @@ function binJoinBlocks(block1, block2){
 		return false;
 	}
 
-	var finalBlock = new FracBlock(block1.numRows);
+	var finalBlock = block1;
 	var newArr = new Array(block1.numRows);
 	for (var i = 0; i < block1.numRows; i++){
 		block1Val = block1.data[i];

@@ -158,19 +158,22 @@
 			// look how I loop through all tiles
 			tileSprites.forEach(function(item){
 				// retrieving the proper value to show
-				var block = fieldArray[item.pos];
+				if (!(fieldArray[item.pos] == 0)){
+					var block = fieldArray[item.pos];
 
-				// pattern = [1,2,1,2]
-				var pattern = block.data;
-				// console.log(pattern)
-				// console.log(pattern)
-				// console.log(mapping(pattern))
-				item.loadTexture(mapping(pattern),0)
+					// pattern = [1,2,1,2]
+					var pattern = block.data;
+					// console.log(item)
+					// console.log(pattern)
+					// console.log(mapping(pattern))
+					item.loadTexture(mapping(pattern),0)
 
-				// showing the value
-				// item.getChildAt(0).text=value;
-				// // tinting the tile
-				// item.tint=colors[value]
+					// showing the value
+					// item.getChildAt(0).text=value;
+					// // tinting the tile
+					// item.tint=colors[value]
+				}
+				
 			});	
 		}
 
@@ -189,6 +192,7 @@
 				 if(canMove){
 					// the player can move, let's set "canMove" to false to prevent moving again until the move process is done
 					  canMove=false;
+					  legal = false;
 					  // keeping track if the player moved, i.e. if it's a legal move
 					  var moved = false;
 					  // look how I can sort a group ordering it by a property
@@ -205,17 +209,25 @@
 							// looping from column position back to the leftmost column
 							for(i=col-1;i>=0;i--){
 								if (fieldArray[row*2+i] != 0){
-									remove = true;
-									removedPos.push(item)
+									if (fieldArray[row*2+i].numRows == fieldArray[row*2+col].numRows){
+										remove = true;
+										removedPos.push(item);
+										legal = true;
+									}
 								}
+
+								// else{
+								// 	legal=true;
+								// }
 								
 							}
 							// if we can actually move...
-							if(col!=i+1){
+							if(legal){
+								console.log("moving left")
 								// set moved to true
-									 moved=true;
-									 // moving the tile "item" from row*4+col to row*4+i+1 and (if allowed) remove it
-									 moveTile(item,row*2+col,row*2+i+1,remove);
+								 moved=true;
+								 // moving the tile "item" from row*4+col to row*4+i+1 and (if allowed) remove it
+								 moveTile(item,row*2+col,row*2+i+1,remove);
 							}
 						}
 					});
@@ -241,34 +253,32 @@
 		
 		// FUNCTION TO MOVE A TILE
 		function moveTile(tile,from,to,remove){
-			console.log("from",from)
-			console.log("to",to)
-			console.log("move!")
+			
+			// console.log("move!")
 			// first, we update the array with new values
-			 fracFrom = fieldArray[from]
-			 fracTo = fieldArray[to]
-			 // console.log(fracFrom)
-			 // console.log(fracTo)
+			 fracFrom = fieldArray[from];
+			 fracTo = fieldArray[to];
 			 if ((fracFrom !=0)&&(fracTo!=0)){
+			 
 				 if (toRow(to) == toRow(from)){
-				 	console.log("bin join")
+				 	// console.log("bin join")
 				 	newFrac = binJoinBlocks(fracFrom, fracTo);
-				 	console.log(newFrac)
 				 	fieldArray[to] = newFrac;
 				 }
 				 else if (toCol(to)==toCol(from)){
-				 	console.log("phys join")
+				 	// console.log("phys join")
 					newFrac = physicalJoinBlocks(fracFrom,fracTo);
 					fieldArray[to] = newFrac;
 				 }	
-				// fieldArray[to] = newFrac;
-				console.log("to")
-				console.log(to)
-				console.log(fieldArray[to]);
-			 	console.log(fieldArray);
+			
+			 }
+			 else{
+			 	console.log("empty so move")
+				fieldArray[to]=fieldArray[from];
+				fieldArray[from]=0;
+				tile.pos=to;
 			 }
 				 
-				// tile.pos = to;
 				// //  // then we create a tween
 				 var movement = game.add.tween(tile);
 				 movement.to({x:tileSize*(toCol(to)),y:tileSize*(toRow(to))},150);
@@ -298,12 +308,12 @@
 						if(row>0){  
 								var remove=false;
 							for(i=row-1;i>=0;i--){
+
+
 								if(fieldArray[i*2+col]!=0){
-									if(fieldArray[i*2+col]==fieldArray[row*2+col]){
-										remove = true;
-										i--;                                             
-									}
-										  break
+									remove = true;
+									removedPos.push(item)
+									// break
 								}
 							}
 							if(row!=i+1){
@@ -312,42 +322,56 @@
 							}
 						}
 					});
-					endMove(moved);
+					endMove(moved,removedPos);
 				 }
 		}
 		
 		// MOVING TILES RIGHT - SAME PRINCIPLES AS BEFORE
 			function moveRight(){
+				removedPos = []
+				legal=false
 				  if(canMove){
 					  canMove=false;
 					  var moved=false;
 					tileSprites.sort("x",Phaser.Group.SORT_DESCENDING);
 					tileSprites.forEach(function(item){
+						console.log("right")
 						var row = toRow(item.pos);
 						var col = toCol(item.pos);
+						console.log("row: ",row)
+						console.log("col: ",col)
 						if(col<2){
 								var remove = false;
 							for(i=col+1;i<=1;i++){
 								if(fieldArray[row*2+i]!=0){
-										  if(fieldArray[row*2+i]==fieldArray[row*2+col]){
+									if (fieldArray[row*2+i].numRows == fieldArray[row*2+col].numRows){
+										console.log("legal")
 										remove = true;
-										i++;                                             
+										removedPos.push(item);
+										legal=true;
 									}
-									break
+									
+									
+									// i++;                                            
 								}
+								// if (fieldArray[row*2+i] == 0){
+								// 		console.log("legal")
+								// 		legal=true;
+								// 	}
 							}
-							if(col!=i-1){
+							if(legal){
 									 moved=true;
 								moveTile(item,row*2+col,row*2+i-1,remove);
 							}
 						}
 					});
-					endMove(moved);
+					endMove(moved,removedPos);
 				 }
 		}
 			
 			// MOVING TILES DOWN - SAME PRINCIPLES AS BEFORE
 			function moveDown(){
+				removedPos = []
 				  if(canMove){
 					  canMove=false;
 					  var moved=false;
@@ -359,11 +383,8 @@
 								var remove = false;
 							for(i=row+1;i<=1;i++){
 								if(fieldArray[i*2+col]!=0){
-									if(fieldArray[i*2+col]==fieldArray[row*2+col]){
 										remove = true;
-										i++;                                             
-									}
-										  break
+										removedPos.push(item)
 								}
 							}
 							if(row!=i-1){
@@ -372,7 +393,7 @@
 							}
 						}
 					});
-					 endMove(moved);
+					 endMove(moved,removedPos);
 				 }
 		}
 		};
