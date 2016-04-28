@@ -9,15 +9,23 @@
 		body {
 			margin: 0;
 		}
+
+		#game{
+			padding: 300px;
+		}
 	</style>
 </head>
 <body>
+<div id="game"></div>
 <script type="text/javascript">
 	window.onload = function() {
 			// tile width, in pixels
 		var tileSize = 150;
 		// creation of a new phaser game, with a proper width and height according to tile size
-		var game = new Phaser.Game(tileSize*4,tileSize*4,Phaser.CANVAS,"Fractal Game",{preload:onPreload, create:onCreate});
+		var game = new Phaser.Game(tileSize*2,tileSize*2,Phaser.CANVAS,"game",{preload:onPreload, create:onCreate});
+
+		
+
 		// game array, starts with all cells to zero
 		// (top right, top left, bot left, bot right)
 		var fieldArray = new Array(0,0,0,0);
@@ -29,24 +37,6 @@
 		var leftKey;
 		var rightKey;
 		// colors to tint tiles according to their value
-		var colors = {
-			2:0xFFFFFF,
-			4:0xFFEEEE,
-			8:0xFFDDDD,
-			16:0xFFCCCC,
-			32:0xFFBBBB,
-			64:0xFFAAAA,
-			128:0xFF9999,
-			256:0xFF8888,
-			512:0xFF7777,
-			1024:0xFF6666,
-			2048:0xFF5555,
-			4096:0xFF4444,
-			8192:0xFF3333,
-			16384:0xFF2222,
-			32768:0xFF1111,
-			65536:0xFF0000
-		}
 		// at the beginning of the game, the player cannot move
 			var canMove=false;
 			
@@ -89,6 +79,7 @@
 		
 		// THE GAME HAS BEEN CREATED
 		function onCreate() {
+			game.stage.backgroundColor = '#ffffff';
 			// listeners for WASD keys
 			upKey = game.input.keyboard.addKey(Phaser.Keyboard.W);
 			upKey.onDown.add(moveUp,this);
@@ -222,7 +213,7 @@
 								
 							}
 							// if we can actually move...
-							if(legal){
+							if(col != i+1){
 								console.log("moving left")
 								// set moved to true
 								 moved=true;
@@ -258,21 +249,34 @@
 			// first, we update the array with new values
 			 fracFrom = fieldArray[from];
 			 fracTo = fieldArray[to];
+			 canMove = true;
 			 if ((fracFrom !=0)&&(fracTo!=0)){
 			 
 				 if (toRow(to) == toRow(from)){
-				 	// console.log("bin join")
-				 	newFrac = binJoinBlocks(fracFrom, fracTo);
-				 	fieldArray[to] = newFrac;
+				 	console.log("bin join")
+				 	if (fracFrom.data.length == fracTo.data.length){
+				 		newFrac = binJoinBlocks(fracFrom, fracTo);
+				 		fieldArray[to] = newFrac;
+				 	}
+				 	else{
+				 		return;
+				 	}
+				 	
 				 }
 				 else if (toCol(to)==toCol(from)){
 				 	// console.log("phys join")
-					newFrac = physicalJoinBlocks(fracFrom,fracTo);
+				 	if (toRow(to) < toRow(from)){
+				 		newFrac = physicalJoinBlocks(fracTo,fracFrom);
+				 	}
+				 	else{
+				 		newFrac = physicalJoinBlocks(fracFrom,fracTo);
+				 	}
+					
 					fieldArray[to] = newFrac;
 				 }	
 			
 			 }
-			 else{
+			 else if (canMove){
 			 	console.log("empty so move")
 				fieldArray[to]=fieldArray[from];
 				fieldArray[from]=0;
@@ -335,17 +339,17 @@
 					  var moved=false;
 					tileSprites.sort("x",Phaser.Group.SORT_DESCENDING);
 					tileSprites.forEach(function(item){
-						console.log("right")
+						// console.log("right")
 						var row = toRow(item.pos);
 						var col = toCol(item.pos);
-						console.log("row: ",row)
-						console.log("col: ",col)
+						// console.log("row: ",row)
+						// console.log("col: ",col)
 						if(col<2){
 								var remove = false;
 							for(i=col+1;i<=1;i++){
 								if(fieldArray[row*2+i]!=0){
 									if (fieldArray[row*2+i].numRows == fieldArray[row*2+col].numRows){
-										console.log("legal")
+										// console.log("legal")
 										remove = true;
 										removedPos.push(item);
 										legal=true;
@@ -359,7 +363,7 @@
 								// 		legal=true;
 								// 	}
 							}
-							if(legal){
+							if(col!=i-1){
 									 moved=true;
 								moveTile(item,row*2+col,row*2+i-1,remove);
 							}
