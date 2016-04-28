@@ -15,7 +15,7 @@
 <script type="text/javascript">
 	window.onload = function() {
 			// tile width, in pixels
-		var tileSize = 100;
+		var tileSize = 150;
 		// creation of a new phaser game, with a proper width and height according to tile size
 		var game = new Phaser.Game(tileSize*4,tileSize*4,Phaser.CANVAS,"Fractal Game",{preload:onPreload, create:onCreate});
 		// game array, starts with all cells to zero
@@ -53,9 +53,38 @@
 		// THE GAME IS PRELOADING
 		function onPreload() {
 			// preload the only image we are using in the game
-			game.load.image("tile", "assets/tile.png");
-
-			// TODO: add all the images
+			// game.load.image("tile", "assets/tile.png");
+			game.load.image("gamescreen", "assets/gamescreen.png");
+		    game.load.image("1", "assets/level1/1.png");
+		    game.load.image("2", "assets/level1/2.png");
+		    game.load.image("11", "assets/level2/11.png");
+		    game.load.image("12", "assets/level2/12.png");
+		    game.load.image("21", "assets/level2/21.png");
+		    game.load.image("22", "assets/level2/22.png");
+		    game.load.image("111", "assets/level3/111.png");
+		    game.load.image("112", "assets/level3/112.png");
+		    game.load.image("121", "assets/level3/121.png");
+		    game.load.image("122", "assets/level3/122.png");
+		    game.load.image("211", "assets/level3/211.png");
+		    game.load.image("212", "assets/level3/212.png");
+		    game.load.image("221", "assets/level3/221.png");
+		    game.load.image("222", "assets/level3/222.png");
+		    game.load.image("1111", "assets/level4/1111.png");
+		    game.load.image("1112", "assets/level4/1112.png");
+		    game.load.image("1121", "assets/level4/1121.png");
+		    game.load.image("1211", "assets/level4/1211.png");
+		    game.load.image("2111", "assets/level4/2111.png");
+		    game.load.image("2211", "assets/level4/2211.png");
+		    game.load.image("1221", "assets/level4/1221.png");
+		    game.load.image("1122", "assets/level4/1122.png");
+		    game.load.image("2112", "assets/level4/2112.png");
+		    game.load.image("1222", "assets/level4/1222.png");
+		    game.load.image("2221", "assets/level4/2221.png");
+		    game.load.image("2122", "assets/level4/2122.png");
+		    game.load.image("2212", "assets/level4/2212.png");
+		    game.load.image("2121", "assets/level4/2121.png");
+		    game.load.image("1212", "assets/level4/1212.png");
+		    game.load.image("2222", "assets/level4/2222.png");
 		}
 		
 		// THE GAME HAS BEEN CREATED
@@ -72,9 +101,9 @@
 				// sprite group declaration
 			tileSprites = game.add.group();
 				// at the beginning of the game we add two "2"
-			addOne(1);
+			addOne(0);
 			addOne(2);
-			addOne(3)
+			addOne(3);
 		}
 		
 		// A NEW LVL 1 IS ADDED TO THE GAME
@@ -85,18 +114,18 @@
 
 
 			// creation of a new sprite with "tile" instance, that is "tile.png" we loaded before
-			var tile = game.add.sprite(toCol(pos)*tileSize,toRow(pos)*tileSize,"tile");
+			var tile = game.add.sprite(toCol(pos)*tileSize,toRow(pos)*tileSize,mapping(fracB.data));
 			// creation of a custom property "pos" and assigning it the index of the newly added "2"
 			tile.block = fracB;
 			tile.pos = pos
 			// at the beginning the tile is completely transparent
 			tile.alpha=0;
 			// creation of a text which will represent the value of the tile
-			var text = game.add.text(tileSize/2,tileSize/2,"1",{font:"bold 16px Arial",align:"center"});
+			// var text = game.add.text(tileSize/2,tileSize/2,"1",{font:"bold 16px Arial",align:"center"});
 				 // setting text anchor in the horizontal and vertical center
-			text.anchor.set(0.5);
+			// text.anchor.set(0.5);
 			// adding the text as a child of tile sprite
-			tile.addChild(text);
+			// tile.addChild(text);
 			// adding tile sprites to the group
 			tileSprites.add(tile);
 			// creation of a new tween for the tile sprite
@@ -129,10 +158,13 @@
 			// look how I loop through all tiles
 			tileSprites.forEach(function(item){
 				// retrieving the proper value to show
-				// var value = fieldArray[item.pos];
+				var block = fieldArray[item.pos];
 
 				// pattern = [1,2,1,2]
-				var pattern = item.block.data;
+				var pattern = block.data;
+				// console.log(pattern)
+				// console.log(pattern)
+				// console.log(mapping(pattern))
 				item.loadTexture(mapping(pattern),0)
 
 				// showing the value
@@ -152,6 +184,7 @@
 		
 		// MOVING TILES LEFT
 		function moveLeft(){
+			removedPos = []
 			// Is the player allowed to move?
 				 if(canMove){
 					// the player can move, let's set "canMove" to false to prevent moving again until the move process is done
@@ -171,16 +204,11 @@
 							var remove = false;
 							// looping from column position back to the leftmost column
 							for(i=col-1;i>=0;i--){
-								// if we find a tile which is not empty, our search is about to end...
-								if(fieldArray[row*2+i]!=0){
-									// ...we just have to see if the tile we are landing on has the same value of the tile we are moving
-									if(fieldArray[row*2+i]==fieldArray[row*2+col]){
-										// in this case the current tile will be removed
-										remove = true;
-										i--;                                             
-									}
-									break;
+								if (fieldArray[row*2+i] != 0){
+									remove = true;
+									removedPos.push(item)
 								}
+								
 							}
 							// if we can actually move...
 							if(col!=i+1){
@@ -192,16 +220,18 @@
 						}
 					});
 					// completing the move
-					endMove(moved,item.pos);
+					endMove(moved,removedPos);
 				 }
 		}
 		
 		// FUNCTION TO COMPLETE THE MOVE AND PLACE ANOTHER "2" IF WE CAN
-		function endMove(m,pos){
+		function endMove(m,items){
 			// if we move the tile...
 			if(m){
-				// add another "2"
-					addOne(pos);
+				for (var i = 0; i<items.length; i++){
+					addOne(items[i].pos);
+					updateLook();
+				}
 				 }
 				 else{
 					// otherwise just let the player be able to move again
@@ -211,34 +241,53 @@
 		
 		// FUNCTION TO MOVE A TILE
 		function moveTile(tile,from,to,remove){
+			console.log("from",from)
+			console.log("to",to)
+			console.log("move!")
 			// first, we update the array with new values
-				 fracFrom = fieldArray[from]
-				 fracTo = fieldArray[to]
+			 fracFrom = fieldArray[from]
+			 fracTo = fieldArray[to]
+			 // console.log(fracFrom)
+			 // console.log(fracTo)
+			 if ((fracFrom !=0)&&(fracTo!=0)){
 				 if (toRow(to) == toRow(from)){
-					newFrac = physicalJoinBlocks(fracFrom,fracTo);
+				 	console.log("bin join")
+				 	newFrac = binJoinBlocks(fracFrom, fracTo);
+				 	console.log(newFrac)
+				 	fieldArray[to] = newFrac;
 				 }
 				 else if (toCol(to)==toCol(from)){
-					newFrac = binJoinBlocks(fracFrom, fracTo);
-				 }
-
-				 fieldArray[to] = newFrac;
-				 fieldArray[from]=0;
-				 tile.pos = to;
-				 // then we create a tween
+				 	console.log("phys join")
+					newFrac = physicalJoinBlocks(fracFrom,fracTo);
+					fieldArray[to] = newFrac;
+				 }	
+				// fieldArray[to] = newFrac;
+				console.log("to")
+				console.log(to)
+				console.log(fieldArray[to]);
+			 	console.log(fieldArray);
+			 }
+				 
+				// tile.pos = to;
+				// //  // then we create a tween
 				 var movement = game.add.tween(tile);
 				 movement.to({x:tileSize*(toCol(to)),y:tileSize*(toRow(to))},150);
-				 
-				movement.onComplete.add(function(){
-				   tile.destroy();
-				});
-				 // let the tween begin!
+				
+				if (remove){
+					movement.onComplete.add(function(){
+					   tile.destroy();
+					});
+				}
+				
+				//  // let the tween begin!
 				movement.start();
 
-				updateLook();
+				// updateLook();
 			}
 			
 			// MOVING TILES UP - SAME PRINCIPLES AS BEFORE
 			function moveUp(){
+				removedPos = []	
 				  if(canMove){
 					  canMove=false;
 					  var moved=false;

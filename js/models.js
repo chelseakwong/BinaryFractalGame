@@ -67,7 +67,7 @@ function binJoinBlocks(block1, block2){
 	for (var i = 0; i < block1.numRows; i++){
 		block1Val = block1.data[i];
 		block2Val = block2.data[i];
-		finalVal;
+		finalVal=0;
 		// even + even = even (2+2 = 2)
 		// odd + even = odd   (2+1 = 1)
 		// odd + odd = even (1+1 = 2)
@@ -82,6 +82,7 @@ function binJoinBlocks(block1, block2){
 		}
 		// odd odd case
 		else if (block1Val + block2Val == 2){
+			console.log("correct")
 			finalVal = 2;
 		}
 
